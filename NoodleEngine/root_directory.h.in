@@ -1,0 +1,4 @@
+#pragma once
+
+// Define the root directory of the project
+#define logl_root "@PROJECT_ROOT_DIR@"
