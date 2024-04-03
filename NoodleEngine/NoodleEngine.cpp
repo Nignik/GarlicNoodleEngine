@@ -29,8 +29,8 @@ constexpr unsigned int SCR_WIDTH = 1200;
 constexpr unsigned int SCR_HEIGHT = 800;
 
 // Paths
-const std::string shaderRootPathRelative = "../../../../NoodleEngine/shaders";
-const std::string shaderRootPathAbsolute = "C:/DEV/GraphicsCookbook/GameEngines/NoodleEngine/shaders";
+const std::string shaderRootPathRelative = "../../../../NoodleEngine/shaders/";
+const std::string shaderRootPathAbsolute = "C:/DEV/GraphicsCookbook/GameEngines/NoodleEngine/shaders/";
 
 // Camera settings
 std::shared_ptr<Camera> camera = std::make_shared<Camera>(glm::vec3(0.0f, 35.0f, 0.0f));
