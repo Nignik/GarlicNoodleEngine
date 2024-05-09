@@ -186,7 +186,7 @@ GLFWwindow* windowInit()
 void imguiInit(GLFWwindow* window)
 {
 	ImGui::CreateContext();
-	ImGui_ImplGlfw_InitForOpenGL(window, false);
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 130");
 }
 
