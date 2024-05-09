@@ -7,7 +7,7 @@ Satellite::Satellite(float mass, float rotationVelocity, float radius, int secto
 {
 }
 
-void Satellite::Draw(glm::mat4& projection, glm::mat4& view)
+void Satellite::Draw(glm::mat4& projection, glm::mat4& view, glm::vec3& cameraPosition)
 {
 	shader.use();
 
@@ -18,6 +18,7 @@ void Satellite::Draw(glm::mat4& projection, glm::mat4& view)
 	shader.setVec3("lightPos", pivot->GetPosition());
 	shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 	shader.setVec3("objectColor", color);
+	shader.setVec3("viewPos", cameraPosition);
 
 	glBindVertexArray(VAO);
 

@@ -6,7 +6,7 @@ GravityPivot::GravityPivot(float mass, float rotationVelocity, float radius, int
 {
 }
 
-void GravityPivot::Draw(glm::mat4& projection, glm::mat4& view)
+void GravityPivot::Draw(glm::mat4& projection, glm::mat4& view, glm::vec3& cameraPosition)
 {
 	shader.use();
 

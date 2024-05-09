@@ -8,20 +8,26 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <camera.h>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include <chrono>
 #include <shader_m.h>
 
 #include <iostream>
 #include <map>
 
-#include "GravityPivot.h"
-#include "Satellite.h"
+#include "Camera.h"
+#include "InputHandler.h"
+#include "gravity/GravityPivot.h"
+#include "gravity/Satellite.h"
 #include "Line.h"
 #include "CameraController.h"
 
 
 GLFWwindow* windowInit();
+void imguiInit(GLFWwindow* window);
 void frameBuffer_Size_Callback(GLFWwindow* window, int width, int height);
 
 // Settings
@@ -31,12 +37,6 @@ constexpr unsigned int SCR_HEIGHT = 800;
 // Paths
 const std::string shaderRootPathRelative = "../../../../NoodleEngine/shaders/";
 const std::string shaderRootPathAbsolute = "C:/DEV/GraphicsCookbook/GameEngines/NoodleEngine/shaders/";
-
-// Camera settings
-std::shared_ptr<Camera> camera = std::make_shared<Camera>(glm::vec3(0.0f, 35.0f, 0.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
-bool firstMouse = true;
 
 // Time
 float deltaTime = 0.0f;
@@ -58,7 +58,11 @@ int main()
 	std::vector<std::string> planetColors = { "red", "green", "cyan", "blue", "pink" };
 
 	GLFWwindow* window = windowInit();
-	CameraController cameraController(window, camera);
+	imguiInit(window);
+
+	std::shared_ptr<Camera> camera = std::make_shared<Camera>();
+	std::unique_ptr<CameraController> cameraController = std::make_unique<CameraController>(camera);
+	glfwSetWindowUserPointer(window, cameraController.get());
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -84,13 +88,35 @@ int main()
 		velocityVectors.push_back(std::make_unique<Line>(vertices, planets[i]->GetPosition(), lineShader));
 	}
 
+	bool showVelocityVectors = true;
+
 	while (!glfwWindowShouldClose(window))
-	{
+	{	
+		glfwPollEvents();
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+
+		ImGui::NewFrame();
+		ImGui::Begin("settings");
+		
+		if (ImGui::Button("show velocity vectors"))
+		{
+			showVelocityVectors = !showVelocityVectors;
+			std::cout << "Button was clicked!" << std::endl;
+		}
+
+		ImGui::SameLine();
+		ImGui::Text(showVelocityVectors ? "True" : "False");
+
+		ImGui::End();
+		ImGui::Render();
+
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		cameraController.processInput(deltaTime);
+		cameraController->processInput(window, deltaTime);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -100,21 +126,28 @@ int main()
 		
 		for (size_t i = 0; i < planets.size(); i++)
 		{
-			planets[i]->Draw(projection, view);
+			planets[i]->Draw(projection, view, camera->Position);
 			planets[i]->UpdatePosition(deltaTime);
 		}
 
-		for (size_t i = 0; i < velocityVectors.size(); i++)
+		if (showVelocityVectors)
 		{
-			velocityVectors[i]->Update(planets[i]->GetPosition(), planets[i]->GetPosition() + planets[i]->GetVelocity());
-			velocityVectors[i]->Draw(projection, view);
+			for (size_t i = 0; i < velocityVectors.size(); i++)
+			{
+				velocityVectors[i]->Update(planets[i]->GetPosition(), planets[i]->GetPosition() + planets[i]->GetVelocity());
+				velocityVectors[i]->Draw(projection, view);
+			}
 		}
 
-		sun.Draw(projection, view);
+		sun.Draw(projection, view, camera->Position);
 
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(window);
-		glfwPollEvents();
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	glfwTerminate();
 	return 0;
@@ -136,8 +169,9 @@ GLFWwindow* windowInit()
 
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, frameBuffer_Size_Callback);
-	glfwSetCursorPosCallback(window, CameraController::mouse_Callback);
-	glfwSetScrollCallback(window, CameraController::scroll_Callback);
+	glfwSetCursorPosCallback(window, mouse_Callback);
+	glfwSetScrollCallback(window, scroll_Callback);
+	glfwSetKeyCallback(window, key_Callback);
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -147,6 +181,13 @@ GLFWwindow* windowInit()
 	}
 
 	return window;
+}
+
+void imguiInit(GLFWwindow* window)
+{
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(window, false);
+	ImGui_ImplOpenGL3_Init("#version 130");
 }
 
 void frameBuffer_Size_Callback(GLFWwindow* window, const int width, const int height)

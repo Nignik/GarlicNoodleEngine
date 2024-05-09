@@ -1,50 +1,42 @@
 #include "CameraController.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
-CameraController* CameraController::currentInstance = nullptr;
-
-CameraController::CameraController(GLFWwindow* window, std::shared_ptr<Camera> camera)
-	: window(window), camera(camera), lastX(400), lastY(300), firstMouse(true)
+CameraController::CameraController(std::shared_ptr<Camera> camera)
+	: m_Camera(camera),
+	lastX(400),
+	lastY(300),
+	firstMouse(true)
 {
-	currentInstance = this; // Set the current instance to this object.
-	glfwSetCursorPosCallback(window, CameraController::mouse_Callback);
-	glfwSetScrollCallback(window, CameraController::scroll_Callback);
-	// Initially disable cursor for camera movement.
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	m_CanMove = true;
 }
 
-void CameraController::processInput(float deltaTime)
+void CameraController::processInput(GLFWwindow* window, float deltaTime)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera->ProcessKeyboard(FORWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera->ProcessKeyboard(BACKWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera->ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera->ProcessKeyboard(RIGHT, deltaTime);
-}
-
-void CameraController::mouse_Callback(GLFWwindow* window, double xPosIn, double yPosIn)
-{
-	if (currentInstance) // Ensure the current instance is valid.
+	if (m_CanMove)
 	{
-		currentInstance->onMouseMove(xPosIn, yPosIn);
-	}
-}
-
-void CameraController::scroll_Callback(GLFWwindow* window, double xOffset, double yOffset)
-{
-	if (currentInstance) // Ensure the current instance is valid.
-	{
-		currentInstance->onScroll(xOffset, yOffset);
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			m_Camera->ProcessKeyboard(FORWARD, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			m_Camera->ProcessKeyboard(BACKWARD, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			m_Camera->ProcessKeyboard(LEFT, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			m_Camera->ProcessKeyboard(RIGHT, deltaTime);
 	}
 }
 
 void CameraController::onMouseMove(double xPosIn, double yPosIn)
 {
+	if (!m_CanMove)
+	{
+		return;
+	}
+
 	float xPos = static_cast<float>(xPosIn);
 	float yPos = static_cast<float>(yPosIn);
 
@@ -56,15 +48,29 @@ void CameraController::onMouseMove(double xPosIn, double yPosIn)
 	}
 
 	float xOffset = xPos - lastX;
-	float yOffset = lastY - yPos; // Reversed since y-coordinates go from bottom to top
+	float yOffset = lastY - yPos;
 
 	lastX = xPos;
 	lastY = yPos;
 
-	camera->ProcessMouseMovement(xOffset, yOffset);
+	m_Camera->ProcessMouseMovement(xOffset, yOffset);
 }
 
 void CameraController::onScroll(double xOffset, double yOffset)
 {
-	camera->ProcessMouseScroll(static_cast<float>(yOffset));
+	if (m_CanMove)
+	{
+		m_Camera->ProcessMouseScroll(static_cast<float>(yOffset));
+	}
+}
+
+void CameraController::Stop()
+{
+	m_CanMove = false;
+	firstMouse = true;
+}
+
+void CameraController::Start()
+{
+	m_CanMove = true;
 }

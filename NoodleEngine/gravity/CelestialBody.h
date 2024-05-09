@@ -13,7 +13,7 @@ public:
 	std::vector<Vertex>& GetVertices();
 	std::vector<int>& GetIndices();
 
-	virtual void Draw(glm::mat4& projection, glm::mat4& view);
+	virtual void Draw(glm::mat4& projection, glm::mat4& view, glm::vec3& cameraPosition);
 
 	float GetMass() const;
 	float GetRotationVelocity() const;
