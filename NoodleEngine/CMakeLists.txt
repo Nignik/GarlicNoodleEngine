@@ -6,11 +6,11 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS "-static")
 
-add_executable (NoodleEngine "NoodleEngine.cpp" "NoodleEngine.h"   "../includes/shader_s.h" "stb_image.cpp"    "gravity/Planetary.h" "gravity/Simulation.h" "gravity/CelestialBody.h"
+add_executable (NoodleEngine "NoodleEngine.cpp" "NoodleEngine.h"   "../includes/shader_s.h" "stb_image.cpp"    "gravity/Planetary.h" "gravity/GravitySimulation.h" "gravity/CelestialBody.h"
 "gravity/CelestialBody.cpp" "gravity/GravityPivot.h" "gravity/GravityPivot.cpp" "gravity/Satellite.h" "gravity/Satellite.cpp"
 "Line.h" "Line.cpp" "CameraController.h" "CameraController.cpp"   "imgui_impl_glfw.cpp"
 "imgui_impl_opengl3.cpp"  
-   "InputHandler.h" "Camera.cpp")
+   "InputHandler.h" "Camera.cpp" "Colors.h" "gravity/GravitySimulation.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET NoodleEngine PROPERTY CXX_STANDARD 20)

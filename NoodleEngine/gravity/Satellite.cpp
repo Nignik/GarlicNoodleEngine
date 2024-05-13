@@ -1,9 +1,9 @@
 #include "Satellite.h"
 
-Satellite::Satellite(float mass, float rotationVelocity, float radius, int sectorCount, int stackCount, glm::vec3 position, glm::vec3 velocity, glm::vec3 color, GravityPivot& pivot, Shader shader)
+Satellite::Satellite(float mass, float rotationVelocity, float radius, int sectorCount, int stackCount, glm::vec3 position, glm::vec3 velocity, glm::vec3 color, std::shared_ptr<GravityPivot> pivot, Shader shader)
 	:
 	CelestialBody(mass, rotationVelocity, radius, sectorCount, stackCount, position, velocity, color, shader),
-	pivot(std::make_unique<GravityPivot>(pivot))
+	pivot(pivot)
 {
 }
 

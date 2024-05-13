@@ -24,6 +24,8 @@
 #include "gravity/Satellite.h"
 #include "Line.h"
 #include "CameraController.h"
+#include "Colors.h"
+#include "gravity/GravitySimulation.h"
 
 
 GLFWwindow* windowInit();
@@ -44,19 +46,6 @@ float lastFrame = 0.0f;
 
 int main()
 {
-	const int sphereSectorCount = 40;
-	const int sphereStackCount = 30;
-
-	std::map<std::string, glm::vec3> colors = {
-		{"red", glm::vec3(1.0f, 0.0f, 0.0f)},
-		{"yellow", glm::vec3(0.8f, 0.8f, 0.0f)},
-		{"green", glm::vec3(0.0f, 0.85f, 0.0f)},
-		{"cyan", glm::vec3(0.0f, 0.85f, 0.85f)},
-		{"blue", glm::vec3(0.0f, 0.0f, 1.0f)},
-		{"pink", glm::vec3(0.8f, 0.0f, 0.5f)}
-	};
-	std::vector<std::string> planetColors = { "red", "green", "cyan", "blue", "pink" };
-
 	GLFWwindow* window = windowInit();
 	imguiInit(window);
 
@@ -66,29 +55,7 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 
-	Shader sunShader((shaderRootPathRelative + "lightVertex.vs").c_str(), (shaderRootPathRelative + "lightFragment.fs").c_str());
-	Shader planetShader((shaderRootPathRelative + "planetVertex.vs").c_str(), (shaderRootPathRelative + "planetFragment.fs").c_str());
-	Shader lineShader((shaderRootPathRelative + "lineVertex.vs").c_str(), (shaderRootPathRelative + "lineFragment.fs").c_str());
-
-	GravityPivot sun(100000.0f, 0.0f, 0.5f, sphereSectorCount, sphereStackCount, glm::vec3(0.0f), glm::vec3(0.0f), colors["yellow"], sunShader);
-
-	std::vector<std::unique_ptr<Satellite>> planets;
-	for (int i = 0; i < 5; i++)
-	{
-		auto planetPosition = glm::vec3(4.0f + i, 0.0f, -5.0f - i);
-		auto planetVelocity = glm::vec3(2.5f, 0.0f, 0.0f);
-		planets.push_back(std::make_unique<Satellite>(100.0f, 0.0f, 0.25f, sphereSectorCount, sphereStackCount, planetPosition, planetVelocity, colors[planetColors[i]], sun, planetShader));
-	}
-
-	std::vector<std::unique_ptr<Line>> velocityVectors;
-	for (int i = 0; i < 5; i++)
-	{
-		glm::vec3 start = glm::vec3(0.0f), end = planets[i]->GetVelocity();
-		std::vector<float> vertices = { start.x, start.y, start.z, end.x, end.y, end.z };
-		velocityVectors.push_back(std::make_unique<Line>(vertices, planets[i]->GetPosition(), lineShader));
-	}
-
-	bool showVelocityVectors = true;
+	GravitySimulation simulation;
 
 	while (!glfwWindowShouldClose(window))
 	{	
@@ -102,12 +69,12 @@ int main()
 		
 		if (ImGui::Button("show velocity vectors"))
 		{
-			showVelocityVectors = !showVelocityVectors;
+			simulation.SwitchVelocityVectors();
 			std::cout << "Button was clicked!" << std::endl;
 		}
 
 		ImGui::SameLine();
-		ImGui::Text(showVelocityVectors ? "True" : "False");
+		ImGui::Text(simulation.IsShowingVelocityVectors() ? "True" : "False");
 
 		ImGui::End();
 		ImGui::Render();
@@ -123,23 +90,8 @@ int main()
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 100.0f);
 		glm::mat4 view = camera->GetViewMatrix();
-		
-		for (size_t i = 0; i < planets.size(); i++)
-		{
-			planets[i]->Draw(projection, view, camera->Position);
-			planets[i]->UpdatePosition(deltaTime);
-		}
 
-		if (showVelocityVectors)
-		{
-			for (size_t i = 0; i < velocityVectors.size(); i++)
-			{
-				velocityVectors[i]->Update(planets[i]->GetPosition(), planets[i]->GetPosition() + planets[i]->GetVelocity());
-				velocityVectors[i]->Draw(projection, view);
-			}
-		}
-
-		sun.Draw(projection, view, camera->Position);
+		simulation.RenderFrame(deltaTime, projection, view, camera->Position);
 
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(window);
