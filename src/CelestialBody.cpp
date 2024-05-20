@@ -2,8 +2,7 @@
 #include <shapes.h>
 #include <ObjectsGeneration.h>
 
-CelestialBody::CelestialBody(float mass, float rotationVelocity, float radius, int sectorCount, int stackCount, glm::vec3 position, glm::vec3 velocity, glm::vec3 color, Shader shader)
-	:
+CelestialBody::CelestialBody(float mass, float radius, glm::vec3 position, glm::vec3 velocity, Material&& material, Shader shader) :
 	mass(mass),
 	rotationVelocity(rotationVelocity),
 	position(position),

@@ -1,35 +1,26 @@
 ﻿#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
-#include <shapes.h>
-#include <ObjectsGeneration.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-
-#include <chrono>
-#include <shader_m.h>
 
 #include <iostream>
 #include <map>
 
 #include "Camera.h"
 #include "InputHandler.h"
-#include "gravity/GravityPivot.h"
-#include "gravity/Satellite.h"
 #include "Line.h"
 #include "CameraController.h"
-#include "Colors.h"
 #include "gravity/GravitySimulation.h"
+#include "NoodleGui.h"
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 
 GLFWwindow* windowInit();
-void imguiInit(GLFWwindow* window);
 void frameBuffer_Size_Callback(GLFWwindow* window, int width, int height);
 
 // Settings
@@ -47,7 +38,7 @@ float lastFrame = 0.0f;
 int main()
 {
 	GLFWwindow* window = windowInit();
-	imguiInit(window);
+	NoodleGui gui(window);
 
 	std::shared_ptr<Camera> camera = std::make_shared<Camera>();
 	std::unique_ptr<CameraController> cameraController = std::make_unique<CameraController>(camera);
@@ -56,28 +47,20 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	GravitySimulation simulation;
+	
+	float brihtnessValue = 0.5;
+	gui.AddButton(Butt("Enable/Disable velocity vectors", [&] {simulation.SwitchVelocityVectors(); }));
+	gui.AddSlider(FloatSlider(
+		"Change sun brightness",
+		[&](float newValue) {simulation.ChangeSunBrightness(newValue); },
+		brihtnessValue,
+		0.0,
+		1.0
+	));
 
 	while (!glfwWindowShouldClose(window))
 	{	
 		glfwPollEvents();
-
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-
-		ImGui::NewFrame();
-		ImGui::Begin("settings");
-		
-		if (ImGui::Button("show velocity vectors"))
-		{
-			simulation.SwitchVelocityVectors();
-			std::cout << "Button was clicked!" << std::endl;
-		}
-
-		ImGui::SameLine();
-		ImGui::Text(simulation.IsShowingVelocityVectors() ? "True" : "False");
-
-		ImGui::End();
-		ImGui::Render();
 
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
@@ -93,13 +76,10 @@ int main()
 
 		simulation.RenderFrame(deltaTime, projection, view, camera->Position);
 
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		gui.RenderFrame();
+
 		glfwSwapBuffers(window);
 	}
-
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
 
 	glfwTerminate();
 	return 0;
@@ -133,13 +113,6 @@ GLFWwindow* windowInit()
 	}
 
 	return window;
-}
-
-void imguiInit(GLFWwindow* window)
-{
-	ImGui::CreateContext();
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 130");
 }
 
 void frameBuffer_Size_Callback(GLFWwindow* window, const int width, const int height)

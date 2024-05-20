@@ -1,9 +1,10 @@
 #include "Satellite.h"
 
-Satellite::Satellite(float mass, float rotationVelocity, float radius, int sectorCount, int stackCount, glm::vec3 position, glm::vec3 velocity, glm::vec3 color, std::shared_ptr<GravityPivot> pivot, Shader shader)
+Satellite::Satellite(float mass, float radius, glm::vec3 position, glm::vec3 velocity, Material&& material, std::shared_ptr<GravityPivot> pivot, Shader shader)
 	:
-	CelestialBody(mass, rotationVelocity, radius, sectorCount, stackCount, position, velocity, color, shader),
-	pivot(pivot)
+	CelestialBody(mass, radius, position, velocity, shader),
+	pivot(pivot),
+	material(std::move(material))
 {
 }
 
@@ -15,9 +16,17 @@ void Satellite::Draw(glm::mat4& projection, glm::mat4& view, glm::vec3& cameraPo
 	shader.setMat4("view", view);
 	shader.setMat4("projection", projection);
 	
-	shader.setVec3("lightPos", pivot->GetPosition());
-	shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-	shader.setVec3("objectColor", color);
+	shader.setVec3("material.ambient", material.ambient);
+	shader.setVec3("material.diffuse", material.diffuse);
+	shader.setVec3("material.specular", material.specular);
+	shader.setFloat("material.shininess", material.shininess);
+
+	Light light = pivot->GetLightParams();
+	shader.setVec3("lgith.position", pivot->GetPosition());
+	shader.setVec3("light.ambient", light.ambient);
+	shader.setVec3("light.diffuse", light.diffuse);
+	shader.setVec3("light.specular", light.specular);
+
 	shader.setVec3("viewPos", cameraPosition);
 
 	glBindVertexArray(VAO);

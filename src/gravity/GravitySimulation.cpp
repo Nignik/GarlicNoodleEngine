@@ -1,5 +1,7 @@
 #include "GravitySimulation.h"
 
+#include <MaterialCooker.h>
+
 GravitySimulation::GravitySimulation()
 	: m_SunShader(Shader((shaderRootPathRelative + "lightVertex.vs").c_str(), (shaderRootPathRelative + "lightFragment.fs").c_str())),
 	m_PlanetShader(Shader((shaderRootPathRelative + "planetVertex.vs").c_str(), (shaderRootPathRelative + "planetFragment.fs").c_str())),
@@ -8,14 +10,14 @@ GravitySimulation::GravitySimulation()
 	const int sphereSectorCount = 40;
 	const int sphereStackCount = 30;
 
-	m_Pivot = std::make_shared<GravityPivot>(100000.0f, 0.0f, 0.5f, sphereSectorCount, sphereStackCount, glm::vec3(0.0f), glm::vec3(0.0f), Color::YELLOW, m_SunShader);
+	m_Pivot = std::make_shared<GravityPivot>(100000.0f, 0.5f, glm::vec3(0.0f), glm::vec3(0.0f), m_SunShader);
 
-	std::vector<glm::vec3> planetColors = { Color::RED, Color::GREEN, Color::CYAN, Color::BLUE, Color::PINK };
+	std::vector<Material> planetMaterials = { MCooker::EMERALD, MCooker::YELLOW_RUBBER, MCooker::EMERALD, MCooker::YELLOW_RUBBER, MCooker::EMERALD };
 	for (int i = 0; i < 5; i++)
 	{
 		auto planetPosition = glm::vec3(4.0f + i, 0.0f, -5.0f - i);
 		auto planetVelocity = glm::vec3(2.5f, 0.0f, 0.0f);
-		m_Satellites.push_back(std::make_unique<Satellite>(100.0f, 0.0f, 0.25f, sphereSectorCount, sphereStackCount, planetPosition, planetVelocity, planetColors[i], m_Pivot, m_PlanetShader));
+		m_Satellites.push_back(std::make_unique<Satellite>(100.0f, 0.25f, planetPosition, planetVelocity, std::move(planetMaterials[i]), m_Pivot, m_PlanetShader));
 	}
 
 	for (int i = 0; i < 5; i++)
@@ -54,4 +56,9 @@ void GravitySimulation::RenderFrame(float deltaTime, glm::mat4& projection, glm:
 	}
 
 	m_Pivot->Draw(projection, view, cameraPosition);
+}
+
+void GravitySimulation::ChangeSunBrightness(float newValue)
+{
+	m_Pivot->ChangeBrightness(newValue);
 }

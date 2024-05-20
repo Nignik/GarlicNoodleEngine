@@ -8,10 +8,12 @@
 
 #include <Vertex.h>
 
+constexpr int sectorCount = 40;
+constexpr int stackCount = 30;
 
 namespace sphere
 {
-	inline std::vector<Vertex> generateVertices(float radius, int stackCount, int sectorCount)
+	inline std::vector<Vertex> generateVertices(float radius)
 	{
 		std::vector<Vertex> vertices;
 
@@ -48,7 +50,7 @@ namespace sphere
 		return vertices;
 	}
 
-	inline std::tuple<std::vector<int>, std::vector<int>> generateIndices(int stackCount, int sectorCount)
+	inline std::tuple<std::vector<int>, std::vector<int>> generateIndices()
 	{
 		std::vector<int> indices;
 		std::vector<int> lineIndices;

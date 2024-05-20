@@ -32,10 +32,11 @@ public:
 	void SwitchVelocityVectors();
 	bool IsShowingVelocityVectors();
 	void RenderFrame(float deltaTime, glm::mat4& projection, glm::mat4& view, glm::vec3& cameraPosition);
+	void ChangeSunBrightness(float newValue);
 
 private:
-	const std::string shaderRootPathRelative = "../../../../NoodleEngine/shaders/";
-	const std::string shaderRootPathAbsolute = "C:/DEV/GraphicsCookbook/GameEngines/NoodleEngine/shaders/";
+	const std::string shaderRootPathRelative = "../../../../src/shaders/";
+	const std::string shaderRootPathAbsolute = "C:/DEV/GraphicsCookbook/GameEngines/src/shaders/";
 	Shader m_SunShader, m_PlanetShader, m_LineShader;
 
 	std::shared_ptr<GravityPivot> m_Pivot;

@@ -2,17 +2,15 @@
 #include <shapes.h>
 #include <ObjectsGeneration.h>
 
-CelestialBody::CelestialBody(float mass, float rotationVelocity, float radius, int sectorCount, int stackCount, glm::vec3 position, glm::vec3 velocity, glm::vec3 color, Shader shader)
+CelestialBody::CelestialBody(float mass, float radius, glm::vec3 position, glm::vec3 velocity, Shader shader)
 	:
 	mass(mass),
-	rotationVelocity(rotationVelocity),
 	position(position),
 	velocity(velocity),
-	color(color),
 	shader(shader)
 {
-	vertices = sphere::generateVertices(radius, stackCount, sectorCount);
-	indices = std::get<0>(sphere::generateIndices(stackCount, sectorCount));
+	vertices = sphere::generateVertices(radius);
+	indices = std::get<0>(sphere::generateIndices());
 
 	auto [newVBO, newVAO, newEBO] = generateObjects(vertices, indices);
 	VBO = newVBO;
@@ -42,11 +40,6 @@ float CelestialBody::GetMass() const
 	return mass;
 }
 
-float CelestialBody::GetRotationVelocity() const
-{
-	return rotationVelocity;
-}
-
 glm::vec3 CelestialBody::GetPosition() const
 {
 	return position;
@@ -55,9 +48,4 @@ glm::vec3 CelestialBody::GetPosition() const
 glm::vec3 CelestialBody::GetVelocity() const
 {
 	return velocity;
-}
-
-glm::vec3 CelestialBody::GetColor() const
-{
-	return color;
 }
